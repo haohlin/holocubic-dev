@@ -1,0 +1,6 @@
+# Upstream references cloned for local consultation; development work lives beside them.
+/holocubic-apps/
+/holocubic-nes-esp32/
+
+# macOS metadata
+.DS_Store
