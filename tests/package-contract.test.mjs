@@ -8,8 +8,10 @@ const read = (name) => readFileSync(new URL(name, packageDir), 'utf8');
 test('Flight Deck declares its launcher entry and safe firmware bindings', () => {
   assert.equal(existsSync(new URL('app.info', packageDir)), true);
   assert.equal(existsSync(new URL('main.lua', packageDir)), true);
+  assert.equal(existsSync(new URL('main.png', packageDir)), true);
   assert.match(read('app.info'), /^name = Holo Flight Deck$/m);
   assert.match(read('app.info'), /^entry = main.lua$/m);
+  assert.match(read('app.info'), /^icon = main.png$/m);
 
   const source = read('main.lua');
   assert.match(source, /app_api\.on, "imu"/);

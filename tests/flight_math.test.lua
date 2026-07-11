@@ -14,6 +14,10 @@ near(flight.normalize(11.6, 10, 1.5, 45), 1.6, 0.0001, "positive value survives 
 equal(flight.normalize(-100, 0, 1.5, 45), -45, "negative tilt clamps")
 near(flight.smooth(0, 10, 0.28), 2.8, 0.0001, "smoothing uses alpha")
 
+local physical_roll, physical_pitch = flight.device_attitude(14, -20, 10, -15, 1.5, 45)
+equal(physical_roll, -5, "device pitch controls the visual roll axis")
+equal(physical_pitch, 4, "device roll controls the visual pitch axis")
+
 local x1, y1, x2, y2 = flight.horizon(320, 240, 45, 0)
 equal(x1, 25, "level horizon starts at left extent")
 equal(x2, 295, "level horizon ends at right extent")

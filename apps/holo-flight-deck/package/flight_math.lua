@@ -21,6 +21,15 @@ function M.smooth(current, target, alpha)
   return from + (to - from) * amount
 end
 
+-- The current firmware reports the physical device axes in the opposite
+-- screen order: pitch is the left/right (roll) motion and roll is the
+-- fore/aft (pitch) motion.
+function M.device_attitude(raw_roll, raw_pitch, neutral_roll, neutral_pitch, dead_zone, limit)
+  local visual_roll = M.normalize(raw_pitch, neutral_pitch, dead_zone, limit)
+  local visual_pitch = M.normalize(raw_roll, neutral_roll, dead_zone, limit)
+  return visual_roll, visual_pitch
+end
+
 function M.horizon(width, height, pitch, roll)
   local screen_w = tonumber(width) or 320
   local screen_h = tonumber(height) or 240

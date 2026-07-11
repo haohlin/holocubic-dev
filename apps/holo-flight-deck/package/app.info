@@ -1,5 +1,6 @@
 name = Holo Flight Deck
 kind = app
 entry = main.lua
+icon = main.png
 description = Transparent tilt-controlled cockpit HUD and input probe
 version = 0.1.0

@@ -100,8 +100,14 @@ local function render()
   if not APP.active then return end
   local target_roll, target_pitch = 0, 0
   if APP.neutral_roll ~= nil then
-    target_roll = flight.normalize(APP.raw_roll, APP.neutral_roll, APP.dead_zone, APP.limit)
-    target_pitch = flight.normalize(APP.raw_pitch, APP.neutral_pitch, APP.dead_zone, APP.limit)
+    target_roll, target_pitch = flight.device_attitude(
+      APP.raw_roll,
+      APP.raw_pitch,
+      APP.neutral_roll,
+      APP.neutral_pitch,
+      APP.dead_zone,
+      APP.limit
+    )
   end
   APP.roll = flight.smooth(APP.roll, target_roll, APP.alpha)
   APP.pitch = flight.smooth(APP.pitch, target_pitch, APP.alpha)
