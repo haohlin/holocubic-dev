@@ -1,0 +1,6 @@
+name = Holo Orca HUD
+kind = app
+entry = main.lua
+icon = main.png
+description = Tilt-controlled Orca session monitor and navigator
+version = 0.1.0
