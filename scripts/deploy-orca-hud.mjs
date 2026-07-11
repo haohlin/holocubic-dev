@@ -47,6 +47,15 @@ async function upload(name, sourcePath) {
 }
 
 async function ensureAppDirectory() {
+  const statUrl = new URL(`http://${deviceHost}/devtools/api/stat`);
+  statUrl.searchParams.set('path', '/sd/apps/holo-orca-hud');
+  const statResponse = await fetch(statUrl, { signal: AbortSignal.timeout(15_000) });
+  if (statResponse.ok) {
+    const stat = await statResponse.json();
+    if (stat.ok && stat.is_dir) return;
+    throw new Error('device app path exists but is not a directory');
+  }
+  if (statResponse.status !== 404) throw new Error('could not inspect device app directory');
   const url = new URL(`http://${deviceHost}/devtools/api/mkdir`);
   url.searchParams.set('path', '/sd/apps/holo-orca-hud');
   const response = await fetch(url, { method: 'POST', signal: AbortSignal.timeout(15_000) });

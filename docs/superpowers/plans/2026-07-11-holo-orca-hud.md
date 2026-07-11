@@ -1,10 +1,10 @@
-# Holo Orca HUD Implementation Plan
+# Holo Context HUD Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build a local-network HoloCubic app that monitors sanitized Orca sessions and activates a selected session.
+**Goal:** Build a local-network HoloCubic context dashboard that shows time, location, weather, device health, and sanitized Orca status, with deliberate session focus control.
 
-**Architecture:** A Node bridge owns all `orca` CLI calls and exposes a token-protected two-endpoint API. A Lua app polls that API, renders a compact HUD, uses physical horizontal tilt for selection, and uses short HOME to request `orca terminal switch` for the selected session.
+**Architecture:** A Node bridge owns all `orca` CLI calls and exposes a token-protected two-endpoint API. The Lua app combines that safe Orca state with the device Weather service and local system APIs. Forward/back tilt changes between Context and Orca Navigator; horizontal tilt selects a session and short HOME focuses its terminal on the Mac.
 
 **Tech Stack:** Node.js standard library, `orca` CLI JSON output, HoloCubic Lua/LVGL/HTTP/sjson APIs, Node and Fengari host tests.
 

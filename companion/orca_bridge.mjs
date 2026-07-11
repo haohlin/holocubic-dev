@@ -77,7 +77,7 @@ async function runOrcaCli(args) {
   return unwrap(JSON.parse(stdout));
 }
 
-async function snapshot(runOrca) {
+async function snapshot(runOrca, focusedSessionId = null) {
   const [orca, worktreeResult, terminalResult] = await Promise.all([
     runOrca(['status', '--json']),
     runOrca(['worktree', 'ps', '--limit', '40', '--json']),
@@ -103,6 +103,7 @@ async function snapshot(runOrca) {
       status: state(worktree.status, 'unknown'),
       agentState: state(worktree.agents?.[0]?.state, 'idle'),
       active: Boolean(worktree.isActive),
+      focused: id === focusedSessionId,
       terminalCount: Math.max(0, Math.min(99, Number(worktree.liveTerminalCount) || 0)),
       canActivate: Boolean(handle),
     };
@@ -126,6 +127,7 @@ export function createBridgeServer({ token, runOrca = runOrcaCli }) {
     throw new Error('ORCA_HUD_TOKEN must be at least 16 characters');
   }
 
+  let focusedSessionId = null;
   return createServer(async (request, response) => {
     if (!authorized(request, token)) {
       writeJson(response, 401, { ok: false, error: 'unauthorized' });
@@ -133,7 +135,7 @@ export function createBridgeServer({ token, runOrca = runOrcaCli }) {
     }
     try {
       if (request.method === 'GET' && request.url === '/v1/status') {
-        const { body } = await snapshot(runOrca);
+        const { body } = await snapshot(runOrca, focusedSessionId);
         writeJson(response, 200, body);
         return;
       }
@@ -143,7 +145,7 @@ export function createBridgeServer({ token, runOrca = runOrcaCli }) {
           writeJson(response, 400, { ok: false, error: 'invalid session id' });
           return;
         }
-        const { selections } = await snapshot(runOrca);
+        const { selections } = await snapshot(runOrca, focusedSessionId);
         const handle = selections.get(payload.id);
         if (handle === undefined) {
           writeJson(response, 404, { ok: false, error: 'unknown session' });
@@ -154,6 +156,7 @@ export function createBridgeServer({ token, runOrca = runOrcaCli }) {
           return;
         }
         await runOrca(['terminal', 'switch', '--terminal', handle, '--json']);
+        focusedSessionId = payload.id;
         writeJson(response, 200, { ok: true, selected: payload.id });
         return;
       }

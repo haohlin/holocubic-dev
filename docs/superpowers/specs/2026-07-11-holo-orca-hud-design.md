@@ -1,47 +1,56 @@
-# Holo Orca HUD Design
+# Holo Context HUD Design
 
-## Goal
+## Purpose
 
-Provide a holographic, tilt-controlled controller for the local Orca desktop:
-it shows the current Orca runtime state and sessions, then activates a selected
-session's connected terminal when the user short-presses the device button.
+Holo Context HUD is the daily-glance display for the HoloCubic: local time,
+configured location, current weather, Wi-Fi/firmware health, and Orca activity.
+It also provides a deliberate, visible way to focus an Orca session on the Mac.
 
-## Architecture
+## Visual System
 
-The display app cannot invoke the Mac's `orca` CLI. A small Node bridge runs on
-the Mac's LAN interface and is the sole component that invokes it. The bridge
-provides only two authenticated operations:
+The 320×240 screen uses true black (`#000000`) as the transparent optical
+background. Cyan (`#8FE9FF`) marks the active mode and selected session, white
+is primary live information, muted blue-grey (`#36515A`) is structure and
+instructions, and amber (`#FFC857`) marks unavailable services. The layout is
+an open HUD with two thin rails; it deliberately avoids card surfaces and
+decorative panels that would look opaque on the display.
 
-- `GET /v1/status` returns Orca availability and a sanitized session list.
-- `POST /v1/select` accepts a session ID that was issued by `GET /v1/status`,
-  resolves its connected terminal, and calls `orca terminal switch`.
+## Context Overview
 
-The bridge never returns prompts, terminal previews, terminal output, absolute
-paths, branches, raw worktree IDs, terminal handles, or command inputs. The
-device only receives a short label, activity state, active state, terminal
-count, and whether the session can be activated.
+Context is the startup screen. It presents, in order:
 
-## Device Interaction
+1. Local time and configured location.
+2. Native weather condition and temperature.
+3. Wi-Fi link and firmware version.
+4. Orca reachability and working-session count.
+5. The session most recently focused from the HUD.
 
-The app calibrates the IMU at startup. Physical left/right tilt moves one row
-through the session list, with a latch so every deliberate tilt advances once.
-Short HOME presses activate the selected session. Long HOME exits. It polls the
-bridge every five seconds and refreshes immediately after activation.
+Short press refreshes context. Forward tilt opens Orca Navigator.
 
-The display uses a black HUD background, cyan selected row, and compact status
-text. It retains no Orca data after exit.
+## Orca Navigator
 
-## Failure Handling
+Navigator lists four sessions at a time. Physical left/right tilt moves one
+selected row after returning through neutral. Each row identifies its current
+state and whether it has a connected terminal. Short press sends `orca terminal
+switch` for the selected connected terminal, then returns to Context with a
+four-and-a-half-second `FOCUS SENT: <session>` confirmation and a persistent
+focused-session indicator.
 
-If the bridge is unavailable, returns malformed JSON, rejects authentication,
-or the selected session has no connected terminal, the HUD presents a concise
-local error and keeps the most recent valid session list. A request-in-flight
-guard prevents overlapping HTTP calls.
+The display never shows prompts, paths, terminal output, raw handles, or shell
+commands. “Focus” is intentional wording: it changes the active terminal tab
+in the Mac Orca UI; it does not turn the cube into a remote terminal.
 
-## Configuration and Safety
+## Sources and Failure Behavior
 
-The bridge binds to the Mac LAN address on port `47631` and requires a random
-bearer token. Deployment renders a device-only `connection.lua` from the local
-bridge configuration; this file is ignored by Git. The bridge accepts no shell
-input from the device and its only mutating command is `orca terminal switch`
-with a terminal handle obtained from a fresh Orca metadata snapshot.
+Location and timezone use `/sd/apps/settings.json`; the existing device Weather
+service supplies current conditions. Orca state and session metadata arrive via
+the LAN bridge. If either service is unavailable, the HUD retains valid prior
+data and shows a concise amber status rather than replacing the display with an
+error screen.
+
+## Validation Constraint
+
+The current firmware/DevTools interface has no display screenshot or simulator
+surface. UI validation is therefore source-level layout review plus on-device
+launch and control smoke testing; it is not a claim of browser screenshot
+fidelity verification.

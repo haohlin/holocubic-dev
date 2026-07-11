@@ -25,4 +25,14 @@ equal(index, 1, "left tilt clamps at the first session")
 equal(latched, true, "edge tilt still latches")
 assert(not changed, "edge tilt does not report a movement")
 
+local page, page_latched, page_changed = hud.move_page(1, 2, 18, false, 12)
+equal(page, 2, "forward tilt opens the session navigator")
+equal(page_latched, true, "page navigation latches until neutral")
+assert(page_changed, "page navigation reports the mode change")
+
+page, page_latched, page_changed = hud.move_page(page, 2, 0, page_latched, 12)
+equal(page, 2, "neutral tilt keeps the current mode")
+equal(page_latched, false, "neutral tilt unlatches mode navigation")
+assert(not page_changed, "neutral mode tilt does not change page")
+
 print("orca_hud_model tests passed")

@@ -18,4 +18,8 @@ function M.move_selection(index, count, physical_horizontal, latched, threshold)
   return moved, true, moved ~= selected
 end
 
+function M.move_page(index, count, physical_vertical, latched, threshold)
+  return M.move_selection(index, count, physical_vertical, latched, threshold)
+end
+
 return M

@@ -81,10 +81,11 @@ test('bridge returns only sanitized session state to authenticated callers', asy
     assert.deepEqual(body.orca, { running: true, reachable: true, state: 'ready' });
     assert.equal(body.sessions.length, 2);
     assert.deepEqual(Object.keys(body.sessions[0]).sort(), [
-      'active', 'agentState', 'canActivate', 'id', 'label', 'status', 'terminalCount',
+      'active', 'agentState', 'canActivate', 'focused', 'id', 'label', 'status', 'terminalCount',
     ]);
     assert.equal(body.sessions[0].label, 'Alpha Internal');
     assert.equal(body.sessions[0].canActivate, true);
+    assert.equal(body.sessions[0].focused, false);
     assert.equal(body.sessions[1].canActivate, false);
     assert.doesNotMatch(JSON.stringify(body), /private|prompt|preview|term_alpha|worktree-alpha/i);
   });
@@ -102,6 +103,12 @@ test('bridge switches only the selected session terminal from a fresh snapshot',
     });
     assert.equal(selection.status, 200);
     assert.deepEqual(await selection.json(), { ok: true, selected: alpha.id });
-    assert.deepEqual(calls.at(-1), ['terminal', 'switch', '--terminal', 'term_alpha', '--json']);
+    assert(calls.some((args) => JSON.stringify(args) === JSON.stringify([
+      'terminal', 'switch', '--terminal', 'term_alpha', '--json',
+    ])));
+
+    const refreshed = await fetch(`${baseUrl}/v1/status`, { headers });
+    const focused = (await refreshed.json()).sessions[0];
+    assert.equal(focused.focused, true);
   });
 });
