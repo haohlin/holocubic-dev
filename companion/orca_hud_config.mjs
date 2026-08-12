@@ -11,6 +11,18 @@ export function pickLanAddress(networks) {
   return addresses.find((address) => address.startsWith('192.168.')) || addresses[0] || null;
 }
 
+export function refreshBridgeConfig(config, host) {
+  return {
+    host,
+    port: config.port,
+    token: config.token,
+  };
+}
+
+export function resolveBridgeBindHost(config, override) {
+  return override || config.host;
+}
+
 function luaString(value) {
   return String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 }

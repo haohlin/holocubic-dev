@@ -2,8 +2,14 @@
 /holocubic-apps/
 /holocubic-nes-esp32/
 
+# Generated local code-graph reports and caches.
+/graphify-out/
+
 # macOS metadata
 .DS_Store
 
 # Local Holo Orca HUD connection token and generated device configuration.
 /.local/
+/apps/holo-orca-hud/package/connection.lua
+/apps/holo-orca-hud/package/lifecycle.txt
+/apps/holo-orca-hud/package/runtime-error.txt

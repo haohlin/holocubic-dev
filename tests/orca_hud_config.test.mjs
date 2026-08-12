@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { pickLanAddress, renderConnectionLua } from '../companion/orca_hud_config.mjs';
+import * as bridgeConfig from '../companion/orca_hud_config.mjs';
+
+const { pickLanAddress, refreshBridgeConfig, renderConnectionLua } = bridgeConfig;
 
 test('prefers the device LAN address and renders a Lua-safe connection file', () => {
   const address = pickLanAddress({
@@ -18,4 +20,25 @@ test('prefers the device LAN address and renders a Lua-safe connection file', ()
     '}',
     '',
   ].join('\n'));
+});
+
+test('refreshes a stale advertised bridge address without rotating the pairing token', () => {
+  const refreshed = refreshBridgeConfig({
+    host: '192.168.0.252',
+    port: 47631,
+    token: 'stable-pairing-token',
+  }, '192.168.10.10');
+
+  assert.deepEqual(refreshed, {
+    host: '192.168.10.10',
+    port: 47631,
+    token: 'stable-pairing-token',
+  });
+});
+
+test('binds to the advertised private interface by default while preserving an explicit override', () => {
+  const config = { host: '192.168.10.10', port: 47631, token: 'stable-pairing-token' };
+
+  assert.equal(bridgeConfig.resolveBridgeBindHost?.(config), '192.168.10.10');
+  assert.equal(bridgeConfig.resolveBridgeBindHost?.(config, '127.0.0.1'), '127.0.0.1');
 });

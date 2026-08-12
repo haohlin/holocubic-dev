@@ -2,5 +2,5 @@ name = Holo Context HUD
 kind = app
 entry = main.lua
 icon = main.png
-description = Transparent context dashboard with weather, device health, and Orca focus controls
-version = 0.1.0
+description = Orca companion with the original smoked-gray transcript presentation
+version = 0.5.10

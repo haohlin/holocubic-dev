@@ -7,7 +7,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { createBridgeServer } from '../companion/orca_bridge.mjs';
-import { pickLanAddress } from '../companion/orca_hud_config.mjs';
+import { pickLanAddress, refreshBridgeConfig, resolveBridgeBindHost } from '../companion/orca_hud_config.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const configPath = resolve(root, '.local/orca-hud.json');
@@ -19,21 +19,27 @@ function validConfig(config) {
 }
 
 async function ensureConfig() {
-  try {
-    const existing = JSON.parse(await readFile(configPath, 'utf8'));
-    if (validConfig(existing)) return existing;
-  } catch {}
   const host = pickLanAddress(networkInterfaces());
   if (!host) throw new Error('no private IPv4 LAN address found');
+  try {
+    const existing = JSON.parse(await readFile(configPath, 'utf8'));
+    if (validConfig(existing)) {
+      const refreshed = refreshBridgeConfig(existing, host);
+      if (refreshed.host !== existing.host) {
+        await writeFile(configPath, `${JSON.stringify(refreshed)}\n`, { mode: 0o600 });
+      }
+      return refreshed;
+    }
+  } catch {}
   const config = { host, port: 47631, token: randomBytes(24).toString('base64url') };
   await mkdir(dirname(configPath), { recursive: true, mode: 0o700 });
   await writeFile(configPath, `${JSON.stringify(config)}\n`, { mode: 0o600 });
   return config;
 }
 
-async function bridgeReady(config) {
+async function bridgeReady(host, port) {
   return new Promise((resolve) => {
-    const socket = createConnection({ host: config.host, port: config.port });
+    const socket = createConnection({ host, port });
     const finish = (ready) => {
       socket.destroy();
       resolve(ready);
@@ -45,9 +51,9 @@ async function bridgeReady(config) {
   });
 }
 
-async function waitForBridge(config) {
+async function waitForBridge(host, port) {
   for (let attempt = 0; attempt < 20; attempt += 1) {
-    if (await bridgeReady(config)) return true;
+    if (await bridgeReady(host, port)) return true;
     await new Promise((resolve) => setTimeout(resolve, 150));
   }
   return false;
@@ -55,31 +61,32 @@ async function waitForBridge(config) {
 
 async function main() {
   const config = await ensureConfig();
+  const bridgeBindHost = resolveBridgeBindHost(config, process.env.ORCA_HUD_BIND_HOST);
   if (process.argv.includes('--serve')) {
     const server = createBridgeServer({ token: config.token });
-    server.listen(config.port, config.host, () => {
+    server.listen(config.port, bridgeBindHost, () => {
       console.log(`[orca-hud] bridge listening on http://${config.host}:${config.port}`);
     });
     return;
   }
   if (process.argv.includes('--check')) {
-    if (!await bridgeReady(config)) throw new Error('bridge is not responding');
+    if (!await bridgeReady(bridgeBindHost, config.port)) throw new Error('bridge is not responding');
     console.log(`[orca-hud] bridge ready at http://${config.host}:${config.port}`);
     return;
   }
-  if (!await bridgeReady(config)) {
+  if (!await bridgeReady(bridgeBindHost, config.port)) {
     const child = spawn(process.execPath, [bridgePath], {
       detached: true,
       stdio: 'ignore',
       env: {
         ...process.env,
-        ORCA_HUD_HOST: config.host,
+        ORCA_HUD_BIND_HOST: bridgeBindHost,
         ORCA_HUD_PORT: String(config.port),
         ORCA_HUD_TOKEN: config.token,
       },
     });
     child.unref();
-    if (!await waitForBridge(config)) throw new Error('bridge did not become ready');
+    if (!await waitForBridge(bridgeBindHost, config.port)) throw new Error('bridge did not become ready');
   }
   console.log(`[orca-hud] bridge ready at http://${config.host}:${config.port}`);
 }
