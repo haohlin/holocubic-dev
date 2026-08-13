@@ -80,7 +80,7 @@ test('Holo Context HUD renders the light frosted-glass transcript extension with
   const source = readOrca('main.lua');
   const model = readOrca('hud_model.lua');
   assert.match(readOrca('app.info'), /^version = 0\.5\.10$/m, 'declares the exact original-transcript presentation release');
-  assert.match(source, /base = 0x3A3C3F/, 'darkens the balanced smoked-gray cube background by another fifty percent');
+  assert.match(source, /base = 0x000000/, 'uses a black canvas background so translucent glass panels read as transparent');
   assert.match(source, /glass_bottom = 0x484D53/, 'darkens the frosted glass treatment by the same proportion');
   assert.match(source, /local function draw_glass_panel/, 'renders depth with canvas-native glass panels');
   assert.match(source, /radius = radius/, 'uses native rounded canvas panels rather than square cards');

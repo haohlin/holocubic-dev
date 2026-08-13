@@ -56,7 +56,7 @@ export function renderTranscriptPreview(lines = [
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="960" height="720" viewBox="0 0 320 240">
-  <rect width="320" height="240" fill="#3A3C3F"/>
+  <rect width="320" height="240" fill="#000000"/>
   <rect x="12" y="9" width="296" height="29" rx="9" fill="#575C60" stroke="#717274"/>
   <text x="160" y="29" text-anchor="middle" fill="#F4F7FB" font-size="14" font-family="Arial, sans-serif">ORCA</text>
   <circle cx="270" cy="23" r="4" fill="#65D6A2"/><text x="282" y="27" fill="#F4F7FB" font-size="9" font-family="Arial, sans-serif">11:22</text>
