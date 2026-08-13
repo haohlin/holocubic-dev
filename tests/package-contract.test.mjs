@@ -161,7 +161,10 @@ test('Holo Flight Deck source has been removed', () => {
 test('device verifier uses the requested hostname and proves the live app loop', () => {
   assert.equal(existsSync(deviceVerifyPath), true, 'device verifier is present');
   const source = readFileSync(deviceVerifyPath, 'utf8');
-  assert.match(source, /clocteck-cubic\.local/, 'uses the requested device hostname');
+  assert.doesNotMatch(source, /clocteck-cubic\.local/, 'does not publish an owner-specific device hostname');
+  assert.doesNotMatch(deploySource, /clocteck-cubic\.local/, 'deployment does not publish an owner-specific device hostname');
+  assert.match(source, /HOLOCUBIC_HOST is required/, 'verification requires an operator-supplied Cube hostname');
+  assert.match(deploySource, /HOLOCUBIC_HOST is required/, 'deployment requires an operator-supplied Cube hostname');
   assert.match(source, /setDefaultResultOrder\('ipv4first'\)/, 'verification uses the required hostname without attempting an unreachable IPv6 route');
   assert.match(source, /api\/system\/exit/, 'tests that the app can leave the foreground');
   assert.match(source, /api\/system\/launch/, 'tests app relaunch');
@@ -170,6 +173,8 @@ test('device verifier uses the requested hostname and proves the live app loop',
   assert.match(source, /await delay\(20_000\)/, 'soaks the canvas HUD across several bridge polls');
   assert.match(source, /bridge-check/, 'checks the cube-to-Orca bridge request');
   assert.match(source, /\/v1\/transcript/, 'proves the cube can request the read-only transcript endpoint');
+  assert.match(source, /\/v1\/select/, 'proves the cube can send the terminal-focus endpoint');
+  assert.match(source, /session\.focused and session\.canActivate/, 'focus probe reselects only the already-focused connected terminal');
   assert.match(source, /sjson\.decode/, 'derives an opaque session id without recording terminal output');
   assert.match(source, /retainedLines/, 'confirms the cube receives scrollable retained-chat metadata without recording chat text');
   assert.match(source, /async function exitToHome/, 'treats the verifier precondition as an idempotent device transition');

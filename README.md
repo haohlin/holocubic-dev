@@ -43,8 +43,8 @@ node scripts/install-orca-bridge-service.mjs
 Deploy after the cube is online:
 
 ```sh
-node scripts/deploy-orca-hud.mjs
-node scripts/verify-orca-hud-device.mjs
+HOLOCUBIC_HOST=your-cube.local node scripts/deploy-orca-hud.mjs
+HOLOCUBIC_HOST=your-cube.local node scripts/verify-orca-hud-device.mjs
 ```
 
 Local secrets live under `.local/` and must never be committed. Deployment

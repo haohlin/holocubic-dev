@@ -3,12 +3,19 @@ import { setDefaultResultOrder } from 'node:dns';
 
 setDefaultResultOrder('ipv4first');
 
-const deviceHost = process.env.HOLOCUBIC_HOST || 'clocteck-cubic.local';
+const deviceHost = process.env.HOLOCUBIC_HOST;
 const appId = 'holo-orca-hud';
 const appRoot = `/sd/apps/${appId}`;
 const runtimeErrorPath = `${appRoot}/runtime-error.txt`;
 const lifecyclePath = `${appRoot}/lifecycle.txt`;
 const bridgeCheckPath = '/sd/apps/devrun/orca-hud-bridge-check.txt';
+
+function requireDeviceHost() {
+  if (typeof deviceHost !== 'string' || !deviceHost.trim()) {
+    throw new Error('HOLOCUBIC_HOST is required; use your Cube mDNS hostname or LAN address');
+  }
+  return deviceHost;
+}
 
 function deviceUrl(path) {
   return `http://${deviceHost}${path}`;
@@ -131,13 +138,14 @@ async function bridgeProbe() {
     'local headers={ ["Authorization"]="Bearer " .. c.token }',
     'local code, body=http.get(c.base_url .. "/v1/status", {headers=headers, timeout=5000})',
     'local transcript_code, transcript_body, retained_lines = 0, nil, 0',
+    'local select_code, select_body = 0, nil',
     'local JSON=(sjson and sjson.decode and sjson) or (json and json.decode and json)',
     'if code == 200 and type(body) == "string" and JSON then',
     '  local ok, doc=pcall(JSON.decode, body)',
     '  local session_id=nil',
     '  if ok and type(doc) == "table" and type(doc.sessions) == "table" then',
     '    for _, session in ipairs(doc.sessions) do',
-    '      if session.canActivate and type(session.id) == "string" then session_id=session.id; break end',
+    '      if session.focused and session.canActivate and type(session.id) == "string" then session_id=session.id; break end',
     '    end',
     '  end',
     '  if session_id then',
@@ -147,19 +155,22 @@ async function bridgeProbe() {
     '      local history=transcript_ok and transcript_doc and transcript_doc.transcript and transcript_doc.transcript.history',
     '      retained_lines=type(history) == "table" and tonumber(history.retainedLines) or 0',
     '    end',
+    '    local payload=JSON.encode and JSON.encode({id=session_id})',
+    '    if payload then select_code, select_body=http.post(c.base_url .. "/v1/select", {headers=headers, timeout=5000}, payload) end',
     '  end',
     'end',
-    `file.putcontents("${bridgeCheckPath}", tostring(code) .. " " .. tostring(body and #body or 0) .. " " .. tostring(transcript_code) .. " " .. tostring(transcript_body and #transcript_body or 0) .. " " .. tostring(retained_lines))`,
+    `file.putcontents("${bridgeCheckPath}", tostring(code) .. " " .. tostring(body and #body or 0) .. " " .. tostring(transcript_code) .. " " .. tostring(transcript_body and #transcript_body or 0) .. " " .. tostring(retained_lines) .. " " .. tostring(select_code) .. " " .. tostring(select_body and #select_body or 0))`,
     '',
   ].join('\n');
   await runDevCode(source);
   await delay(1_000);
   const query = new URLSearchParams({ path: bridgeCheckPath, offset: '0', size: '128' });
   const result = await request(`/devtools/api/read?${query}`);
-  if (!/^200\s+\d+\s+200\s+\d+\s+[1-9]\d*/.test(result)) throw new Error(`cube-to-Orca bridge-check failed: ${result}`);
+  if (!/^200\s+\d+\s+200\s+\d+\s+[1-9]\d*\s+200\s+\d+/.test(result)) throw new Error(`cube-to-Orca bridge-check failed: ${result}`);
 }
 
 async function main() {
+  requireDeviceHost();
   await requestJson('/api/system/state');
   for (const name of [
     'main.lua',

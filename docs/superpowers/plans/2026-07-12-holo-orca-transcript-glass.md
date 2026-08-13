@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- Device requests use `clocteck-cubic.local` only.
+- Device requests use an operator-supplied `HOLOCUBIC_HOST` only.
 - Preserve the single-canvas runtime and do not add dynamic LVGL widgets.
 - Use `#3E424A` as the fully opaque canvas base.
 - Transcript requests accept opaque ids only; raw terminal handles never cross the bridge.

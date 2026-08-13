@@ -13,8 +13,15 @@ setDefaultResultOrder('ipv4first');
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const packageDir = resolve(root, 'apps/holo-orca-hud/package');
 const configPath = resolve(root, '.local/orca-hud.json');
-const deviceHost = process.env.HOLOCUBIC_HOST || 'clocteck-cubic.local';
+const deviceHost = process.env.HOLOCUBIC_HOST;
 const previewPath = resolve(root, '.local/orca-hud-preview.svg');
+
+function requireDeviceHost() {
+  if (typeof deviceHost !== 'string' || !deviceHost.trim()) {
+    throw new Error('HOLOCUBIC_HOST is required; use your Cube mDNS hostname or LAN address');
+  }
+  return deviceHost;
+}
 
 async function readConfig() {
   const config = JSON.parse(await readFile(configPath, 'utf8'));
@@ -93,6 +100,7 @@ async function renderPreviewGate() {
 }
 
 async function main() {
+  requireDeviceHost();
   const config = await readConfig();
   await requireBridge(config);
   await renderPreviewGate();

@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- Use `clocteck-cubic.local` for every device request.
+- Use an operator-supplied `HOLOCUBIC_HOST` for every device request.
 - Preserve the accepted Orca Mobile-derived visual hierarchy and packaged official assets.
 - Keep true-black background, 12px titles, 10px metadata, and no overlapping System metadata.
 - Keep existing bridge and physical controls unchanged.
@@ -158,7 +158,7 @@ Run:
 
 ```bash
 curl --fail --silent --show-error --max-time 15 \
-  'http://clocteck-cubic.local/api/system/state'
+  'http://your-cube.local/api/system/state'
 ```
 
 Expected: `current_app.id` is `holo-orca-hud`; bridge status returns the current Orca sessions; the app stays active through the soak and relaunch cycle.

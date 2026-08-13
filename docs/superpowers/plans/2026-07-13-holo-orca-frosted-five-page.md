@@ -10,7 +10,7 @@
 - Transcript tail is capped to 35 sanitized lines, newest first on entry, with up/down tilt scrolling older/newer content.
 - Physical `left/right` and `up/down` are inverted at the IMU mapping boundary to match the user's observed device orientation. Logical right-enter/left-back and vertical scrolling semantics stay unchanged.
 - Loading never remains indefinite: a failed, disconnected, empty, or timed-out read has a visible terminal state.
-- All cube calls remain hostname-only through `clocteck-cubic.local`; no command, speech, or raw-terminal-handle capability is added.
+- All cube calls remain hostname-only through an operator-supplied `HOLOCUBIC_HOST`; no command, speech, or raw-terminal-handle capability is added.
 
 ## Validation
 

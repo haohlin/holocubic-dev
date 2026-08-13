@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- Every device request uses `clocteck-cubic.local`.
+- Every device request uses an operator-supplied `HOLOCUBIC_HOST`.
 - Do not create dynamic LVGL widgets or add command, voice, or TTS capability.
 - Horizontal tilt is hierarchy only: right enters and left backs out.
 - Forward/back tilt is vertical list/chat scrolling only.
